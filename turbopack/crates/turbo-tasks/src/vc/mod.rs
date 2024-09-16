@@ -1,6 +1,7 @@
 pub(crate) mod cast;
 mod cell_mode;
 pub(crate) mod default;
+pub(crate) mod operation;
 mod read;
 pub(crate) mod resolved;
 mod traits;
@@ -22,6 +23,7 @@ pub use self::{
     cast::{VcCast, VcValueTraitCast, VcValueTypeCast},
     cell_mode::{VcCellMode, VcCellNewMode, VcCellSharedMode},
     default::ValueDefault,
+    operation::VcOperation,
     read::{ReadVcFuture, VcDefaultRead, VcRead, VcTransparentRead},
     resolved::{ResolvedValue, ResolvedVc},
     traits::{Dynamic, TypedForInput, Upcast, VcValueTrait, VcValueType},
@@ -312,11 +314,6 @@ impl<T> Vc<T>
 where
     T: ?Sized,
 {
-    /// Connects the operation pointed to by this `Vc` to the current task.
-    pub fn connect(vc: Self) {
-        vc.node.connect()
-    }
-
     /// Returns a debug identifier for this `Vc`.
     pub async fn debug_identifier(vc: Self) -> Result<String> {
         let resolved = vc.resolve().await?;
