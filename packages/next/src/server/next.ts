@@ -234,6 +234,7 @@ export class NextServer {
 
         this.server = await this.createServer({
           ...this.options,
+          onCleanup: this.onCleanup.bind(this),
           conf,
         })
         if (this.preparedAssetPrefix) {
@@ -261,6 +262,10 @@ export class NextServer {
     }
     return this.reqHandlerPromise
   }
+
+  protected onCleanup(cb: () => Promise<void>): void {
+    this.cleanupListeners.push(cb)
+  }
 }
 
 class NextCustomServer extends NextServer {
@@ -282,7 +287,7 @@ class NextCustomServer extends NextServer {
       dir: this.options.dir!,
       port: this.options.port || 3000,
       isDev: !!this.options.dev,
-      onCleanup: (listener) => this.cleanupListeners.push(listener),
+      onCleanup: this.onCleanup.bind(this),
       hostname: this.options.hostname || 'localhost',
       minimalMode: this.options.minimalMode,
       quiet: this.options.quiet,
