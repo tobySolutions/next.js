@@ -281,8 +281,17 @@ export async function startServer(
       Log.event(`Starting...`)
 
       try {
-        const cleanupListeners = [() => new Promise((res) => server.close(res))]
+        const cleanupListeners: (() => Promise<void>)[] = []
+        const onCleanup = (listener: () => Promise<void>) => {
+          cleanupListeners.push(listener)
+        }
+
+        onCleanup(
+          () => new Promise<void>((res) => server.close((_err) => res()))
+        )
+
         let cleanupStarted = false
+
         const cleanup = () => {
           if (cleanupStarted) {
             // We can get duplicate signals, e.g. when `ctrl+c` is used in an
@@ -327,7 +336,7 @@ export async function startServer(
           dir,
           port,
           isDev,
-          onCleanup: (listener) => cleanupListeners.push(listener),
+          onCleanup,
           server,
           hostname,
           minimalMode,
@@ -336,6 +345,9 @@ export async function startServer(
         })
         requestHandler = initResult[0]
         upgradeHandler = initResult[1]
+        const nextServer = initResult[2]
+
+        onCleanup(() => nextServer.close())
 
         const startServerProcessDuration =
           performance.mark('next-start-end') &&
