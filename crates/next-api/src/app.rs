@@ -38,8 +38,8 @@ use next_core::{
 use serde::{Deserialize, Serialize};
 use tracing::Instrument;
 use turbo_tasks::{
-    fxindexset, trace::TraceRawVcs, Completion, FxIndexMap, FxIndexSet, OperationVc, RcStr,
-    ResolvedVc, TryJoinIterExt, Value, ValueToString, Vc,
+    fxindexset, trace::TraceRawVcs, Completion, FxIndexMap, FxIndexSet, RcStr, ResolvedVc,
+    TryJoinIterExt, Value, ValueToString, Vc,
 };
 use turbo_tasks_env::{CustomProcessEnv, ProcessEnv};
 use turbo_tasks_fs::{File, FileContent, FileSystemPath};
@@ -853,10 +853,8 @@ impl AppEndpoint {
         Ok(app_entry)
     }
 
-    /// This is used to wrap output assets of an endpoint into a single operation (OperationVc)
     #[turbo_tasks::function]
-    fn output_assets(self: Vc<Self>, endpoint: OperationVc<Box<dyn Endpoint>>) -> Vc<OutputAssets> {
-        let _ = endpoint.connect();
+    fn output_assets(self: Vc<Self>) -> Vc<OutputAssets> {
         self.output().output_assets()
     }
 
@@ -1615,10 +1613,7 @@ async fn create_app_paths_manifest(
 #[turbo_tasks::value_impl]
 impl Endpoint for AppEndpoint {
     #[turbo_tasks::function]
-    async fn write_to_disk(
-        self: Vc<Self>,
-        self_op: OperationVc<Box<dyn Endpoint>>,
-    ) -> Result<Vc<WrittenEndpoint>> {
+    async fn write_to_disk(self: Vc<Self>) -> Result<Vc<WrittenEndpoint>> {
         let this = self.await?;
         let page_name = this.page.to_string();
         let span = match this.ty {
@@ -1643,7 +1638,9 @@ impl Endpoint for AppEndpoint {
         };
         async move {
             let output = self.output().await?;
-            let output_assets = self.output_assets(self_op);
+            // Must use self.output_assets() instead of output.output_assets() to make it a
+            // single operation
+            let output_assets = self.output_assets();
 
             let node_root = this.app_project.project().node_root();
 
@@ -1651,7 +1648,7 @@ impl Endpoint for AppEndpoint {
 
             this.app_project
                 .project()
-                .emit_all_output_assets(OperationVc::new(output_assets))
+                .emit_all_output_assets(Vc::cell(output_assets))
                 .await?;
 
             let node_root = this.app_project.project().node_root();
