@@ -438,7 +438,7 @@ describe('Error overlay for hydration errors in App router', () => {
       expect(await session.getRedboxDescription()).toMatchInlineSnapshot(`
         "In HTML, whitespace text nodes cannot be a child of <table>. Make sure you don't have any extra whitespace between tags on each line of your source code.
         This will cause a hydration error.
-  
+
           ...
             <RenderFromTemplateContext>
               <ScrollAndFocusHandler segmentPath={[...]}>
@@ -469,8 +469,8 @@ describe('Error overlay for hydration errors in App router', () => {
                 <InnerScrollAndFocusHandler segmentPath={[...]} focusAndScrollRef={{apply:false, ...}}>
                   <ErrorBoundary errorComponent={undefined} errorStyles={undefined} errorScripts={undefined}>
                     <LoadingBoundary hasLoading={false} loading={undefined} loadingStyles={undefined} loadingScripts={undefined}>
-                      <HTTPAccessFallbackBoundary notFound={[...]} forbidden={undefined} unauthorized={undefined}>
-                        <HTTPAccessFallbackErrorBoundary pathname="/" notFound={[...]} forbidden={undefined} ...>
+                      <HTTPAccessFallbackBoundary notFound={[...]} forbidden={[...]} unauthorized={[...]}>
+                        <HTTPAccessFallbackErrorBoundary pathname="/" notFound={[...]} forbidden={[...]} unauthorized={[...]} ...>
                           <RedirectBoundary>
                             <RedirectErrorBoundary router={{...}}>
                               <InnerLayoutRouter parallelRouterKey="children" url="/" tree={[...]} childNodes={Map} ...>
@@ -951,7 +951,7 @@ describe('Error overlay for hydration errors in App router', () => {
     } else {
       expect(fullPseudoHtml).toMatchInlineSnapshot(`
         "...
-          <HTTPAccessFallbackErrorBoundary pathname="/" notFound={[...]} forbidden={undefined} unauthorized={undefined} ...>
+          <HTTPAccessFallbackErrorBoundary pathname="/" notFound={[...]} forbidden={[...]} unauthorized={[...]} ...>
             <RedirectBoundary>
               <RedirectErrorBoundary router={{...}}>
                 <InnerLayoutRouter parallelRouterKey="children" url="/" tree={[...]} childNodes={Map} segmentPath={[...]} ...>
