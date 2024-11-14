@@ -106,6 +106,7 @@ import { isInterceptionRouteRewrite } from '../lib/generate-interception-routes-
 import type { ServerOnInstrumentationRequestError } from './app-render/types'
 import { RouteKind } from './route-kind'
 import { InvariantError } from '../shared/lib/invariant-error'
+import { AwaiterOnce } from './after/awaiter'
 
 export * from './base-server'
 
@@ -173,7 +174,6 @@ export default class NextNodeServer extends BaseServer<
     res: ServerResponse
   ) => void
 
-  private pendingWaitUntilPromises: Set<Promise<unknown>> = new Set()
   private internalWaitUntil: WaitUntil | undefined
 
   constructor(options: Options) {
@@ -1885,15 +1885,19 @@ export default class NextNodeServer extends BaseServer<
       )
     }
 
-    // TODO(after): warn if exiting before these are awaited?
-    this.serverOptions.onCleanup?.(async () => {
-      await Promise.all(this.pendingWaitUntilPromises)
-    })
-
-    return (promise: Promise<unknown>) => {
-      promise.catch((err) => console.error(err))
-      this.pendingWaitUntilPromises.add(promise)
-      promise.finally(() => this.pendingWaitUntilPromises.delete(promise))
+    if (!this.serverOptions.onCleanup) {
+      // If there's no `onCleanup`, then we have no way to
+      // await pending `after` callbacks before shutting down. Return a noop.
+      return function noopWaitUntil(promise: Promise<unknown>) {
+        promise.catch((err) => console.error(err))
+      }
     }
+
+    const awaiter = new AwaiterOnce({ onError: console.error })
+
+    // TODO(after): warn if exiting before these are awaited?
+    this.serverOptions.onCleanup(() => awaiter.awaiting())
+
+    return awaiter.waitUntil
   }
 }
