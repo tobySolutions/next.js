@@ -1788,14 +1788,7 @@ export default abstract class Server<
   }
 
   protected getInternalWaitUntil(): WaitUntil | undefined {
-    // we're in `next start` or `next dev`. noop is fine for both.
-    return Server.noopWaitUntil
-  }
-
-  private static noopWaitUntil(promise: Promise<any>) {
-    promise.catch((err: unknown) => {
-      console.error(err)
-    })
+    return undefined
   }
 
   private async renderImpl(
