@@ -303,7 +303,7 @@ export async function startServer(
           cleanupStarted = true
           ;(async () => {
             debug('start-server process cleanup')
-            await Promise.all(cleanupListeners.map((f) => f()))
+            await Promise.allSettled(cleanupListeners.map((f) => f()))
             debug('start-server process cleanup finished')
             process.exit(0)
           })()
