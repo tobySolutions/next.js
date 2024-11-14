@@ -157,7 +157,7 @@ export class NextServer {
       [
         async () => {
           const server = await this.getServer()
-          await (server as any).close()
+          await server['close']()
         },
         ...this.cleanupListeners,
       ].map((f) => f())
