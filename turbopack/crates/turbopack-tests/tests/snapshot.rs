@@ -17,12 +17,12 @@ use turbo_rcstr::RcStr;
 use turbo_tasks::{
     ReadConsistency, ReadRef, ResolvedVc, TryJoinIterExt, TurboTasks, Value, ValueToString, Vc,
 };
+use turbo_tasks_backend::{noop_backing_storage, BackendOptions, TurboTasksBackend};
 use turbo_tasks_env::DotenvProcessEnv;
 use turbo_tasks_fs::{
     json::parse_json_with_source_context, util::sys_to_unix, DiskFileSystem, FileSystem,
     FileSystemPath,
 };
-use turbo_tasks_memory::MemoryBackend;
 use turbopack::{
     ecmascript::{EcmascriptInputTransform, TreeShakingMode},
     module_options::{
@@ -154,7 +154,13 @@ fn test(resource: PathBuf) {
 async fn run(resource: PathBuf) -> Result<()> {
     register();
 
-    let tt = TurboTasks::new(MemoryBackend::default());
+    let tt = TurboTasks::new(TurboTasksBackend::new(
+        BackendOptions {
+            storage_mode: None,
+            ..Default::default()
+        },
+        noop_backing_storage(),
+    ));
     let task = tt.spawn_once_task(async move {
         let out = run_test(resource.to_str().unwrap().into());
         let _ = out.resolve_strongly_consistent().await?;
