@@ -28,6 +28,13 @@ impl<T: ?Sized> OperationVc<T> {
         Self { node }
     }
 
+    /// Marks this operation's underlying function call as a child of the current task, and returns
+    /// a dereferenced [`Vc`] that can be [resolved][Vc::to_resolved] or read with `.await?`.
+    ///
+    /// By marking this function call as a child of the current task, turbo-tasks will re-run tasks
+    /// as-needed to achieve strong consistency at the root of the function call tree. This explicit
+    /// operation is needed as `OperationVc` types can be stored outside of the call graph as part
+    /// of [`State`][crate::State]s.
     pub fn connect(self) -> Vc<T> {
         self.node.node.connect();
         self.node
