@@ -22,8 +22,8 @@ impl<T: ?Sized> OperationVc<T> {
         // TODO to avoid this runtime check, we should mark functions with `(operation)` and return
         // a OperationVc directly
         assert!(
-            !node.is_local(),
-            "OperationVc::new can't be used on local tasks"
+            matches!(node.node, RawVc::TaskOutput(..)),
+            "OperationVc::new must be called on the immediate return value of a task function"
         );
         Self { node }
     }
