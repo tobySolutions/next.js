@@ -8,12 +8,12 @@ use crate::{trace::TraceRawVcs, CollectiblesSource, RawVc, TaskInput, Upcast, Vc
 #[must_use]
 pub struct OperationVc<T>
 where
-    T: ?Sized + Send,
+    T: ?Sized,
 {
     pub(crate) node: Vc<T>,
 }
 
-impl<T: ?Sized + Send> OperationVc<T> {
+impl<T: ?Sized> OperationVc<T> {
     /// Creates a new `OperationVc` from a `Vc`.
     ///
     /// The caller must ensure that the `Vc` is not a local task and it points to a a single
@@ -45,7 +45,7 @@ impl<T: ?Sized + Send> OperationVc<T> {
     pub fn upcast<K>(vc: Self) -> OperationVc<K>
     where
         T: Upcast<K>,
-        K: VcValueTrait + ?Sized + Send,
+        K: VcValueTrait + ?Sized,
     {
         OperationVc {
             node: Vc::upcast(vc.node),
@@ -53,11 +53,11 @@ impl<T: ?Sized + Send> OperationVc<T> {
     }
 }
 
-impl<T> Copy for OperationVc<T> where T: ?Sized + Send {}
+impl<T> Copy for OperationVc<T> where T: ?Sized {}
 
 impl<T> Clone for OperationVc<T>
 where
-    T: ?Sized + Send,
+    T: ?Sized,
 {
     fn clone(&self) -> Self {
         *self
@@ -66,7 +66,7 @@ where
 
 impl<T> Hash for OperationVc<T>
 where
-    T: ?Sized + Send,
+    T: ?Sized,
 {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.node.hash(state);
@@ -75,18 +75,18 @@ where
 
 impl<T> PartialEq<OperationVc<T>> for OperationVc<T>
 where
-    T: ?Sized + Send,
+    T: ?Sized,
 {
     fn eq(&self, other: &Self) -> bool {
         self.node == other.node
     }
 }
 
-impl<T> Eq for OperationVc<T> where T: ?Sized + Send {}
+impl<T> Eq for OperationVc<T> where T: ?Sized {}
 
 impl<T> Debug for OperationVc<T>
 where
-    T: ?Sized + Send,
+    T: ?Sized,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("OperationVc")
@@ -99,7 +99,7 @@ impl<T> TaskInput for OperationVc<T> where T: ?Sized + Send + Sync {}
 
 impl<T> From<RawVc> for OperationVc<T>
 where
-    T: ?Sized + Send,
+    T: ?Sized,
 {
     fn from(raw: RawVc) -> Self {
         Self {
@@ -110,7 +110,7 @@ where
 
 impl<T> Serialize for OperationVc<T>
 where
-    T: ?Sized + Send,
+    T: ?Sized,
 {
     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         self.node.serialize(serializer)
@@ -119,7 +119,7 @@ where
 
 impl<'de, T> Deserialize<'de> for OperationVc<T>
 where
-    T: ?Sized + Send,
+    T: ?Sized,
 {
     fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         Ok(OperationVc {
@@ -130,7 +130,7 @@ where
 
 impl<T> TraceRawVcs for OperationVc<T>
 where
-    T: ?Sized + Send,
+    T: ?Sized,
 {
     fn trace_raw_vcs(&self, trace_context: &mut crate::trace::TraceRawVcsContext) {
         self.node.trace_raw_vcs(trace_context);
@@ -139,13 +139,13 @@ where
 
 impl<T> CollectiblesSource for OperationVc<T>
 where
-    T: ?Sized + Send,
+    T: ?Sized,
 {
-    fn take_collectibles<Vt: VcValueTrait + Send>(self) -> AutoSet<Vc<Vt>> {
+    fn take_collectibles<Vt: VcValueTrait>(self) -> AutoSet<Vc<Vt>> {
         self.node.node.take_collectibles()
     }
 
-    fn peek_collectibles<Vt: VcValueTrait + Send>(self) -> AutoSet<Vc<Vt>> {
+    fn peek_collectibles<Vt: VcValueTrait>(self) -> AutoSet<Vc<Vt>> {
         self.node.node.peek_collectibles()
     }
 }
