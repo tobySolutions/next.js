@@ -11,8 +11,8 @@ pub use super::{
     manager::{find_cell_by_type, notify_scheduled_tasks, spawn_detached_for_testing},
 };
 use crate::{
-    debug::ValueDebugFormatString, shrink_to_fit::ShrinkToFit, task::TaskOutput, RawVc,
-    ResolvedValue, TaskInput, TaskPersistence, Vc,
+    debug::ValueDebugFormatString, shrink_to_fit::ShrinkToFit, task::TaskOutput, OperationValue,
+    RawVc, ResolvedValue, TaskInput, TaskPersistence, Vc,
 };
 
 #[inline(never)]
@@ -51,6 +51,8 @@ where
     Rv: ResolvedValue + Send,
 {
 }
+
+pub fn assert_argument_is_operation_value<Argument: OperationValue>() {}
 
 #[macro_export]
 macro_rules! stringify_path {

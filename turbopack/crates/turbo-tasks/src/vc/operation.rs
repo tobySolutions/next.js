@@ -17,14 +17,12 @@ where
 }
 
 impl<T: ?Sized> OperationVc<T> {
-    /// Creates a new `OperationVc` from a `Vc`.
-    ///
-    /// The caller must ensure that the `Vc` is not a local task and it points to a a single
-    /// operation.
-    pub fn new(node: Vc<T>) -> Self {
-        // TODO to avoid this runtime check, we should mark functions with `(operation)` and return
-        // a OperationVc directly
-        assert!(
+    // Called by the `#[turbo_tasks::function]` macro.
+    //
+    // The macro ensures that the `Vc` is not a local task and it points to a single operation.
+    #[doc(hidden)]
+    pub unsafe fn cell_private(node: Vc<T>) -> Self {
+        debug_assert!(
             matches!(node.node, RawVc::TaskOutput(..)),
             "OperationVc::new must be called on the immediate return value of a task function"
         );
