@@ -218,6 +218,13 @@ export async function startServer(
     }
   })
 
+  const cleanupListeners: (() => Promise<void>)[] = []
+  const onCleanup = (listener: () => Promise<void>) => {
+    cleanupListeners.push(listener)
+  }
+
+  onCleanup(() => new Promise<void>((res) => server.close(() => res())))
+
   await new Promise<void>((resolve) => {
     server.on('listening', async () => {
       const nodeDebugType = getNodeDebugType()
@@ -281,17 +288,7 @@ export async function startServer(
       Log.event(`Starting...`)
 
       try {
-        const cleanupListeners: (() => Promise<void>)[] = []
-        const onCleanup = (listener: () => Promise<void>) => {
-          cleanupListeners.push(listener)
-        }
-
-        onCleanup(
-          () => new Promise<void>((res) => server.close((_err) => res()))
-        )
-
         let cleanupStarted = false
-
         const cleanup = () => {
           if (cleanupStarted) {
             // We can get duplicate signals, e.g. when `ctrl+c` is used in an
