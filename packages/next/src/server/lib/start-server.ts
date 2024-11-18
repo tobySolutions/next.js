@@ -53,7 +53,7 @@ export async function getRequestHandlers({
   dir,
   port,
   isDev,
-  onCleanup,
+  onDevServerCleanup,
   server,
   hostname,
   minimalMode,
@@ -64,7 +64,7 @@ export async function getRequestHandlers({
   dir: string
   port: number
   isDev: boolean
-  onCleanup: (listener: () => Promise<void>) => void
+  onDevServerCleanup: ((listener: () => Promise<void>) => void) | undefined
   server?: import('http').Server
   hostname?: string
   minimalMode?: boolean
@@ -76,7 +76,7 @@ export async function getRequestHandlers({
     dir,
     port,
     hostname,
-    onCleanup,
+    onDevServerCleanup,
     dev: isDev,
     minimalMode,
     server,
@@ -333,7 +333,7 @@ export async function startServer(
           dir,
           port,
           isDev,
-          onCleanup,
+          onDevServerCleanup: isDev ? onCleanup : undefined,
           server,
           hostname,
           minimalMode,
@@ -344,6 +344,9 @@ export async function startServer(
         upgradeHandler = initResult[1]
         const nextServer = initResult[2]
 
+        // NOTE: `NextServer` also has a method called `onCleanup`,
+        // (used e.g. for implementing `waitUntil` in `next start`)
+        // and this is what actually makes those cleanups execute
         onCleanup(() => nextServer.close())
 
         const startServerProcessDuration =

@@ -255,6 +255,10 @@ export interface Options {
    * The HTTP Server that Next.js is running behind
    */
   httpServer?: HTTPServer
+  /**
+   * Allows scheduling callback to run before the server shuts down.
+   * (only available in `next start` or in custom servers)
+   */
   onCleanup?: (cb: () => Promise<void>) => void
 }
 
