@@ -403,6 +403,11 @@ export class NextInstance {
   ): Promise<void> {
     if (this.childProcess) {
       this.isStopping = true
+      if (this.isStopping) {
+        // warn for debugging, but don't prevent sending two signals in succession
+        // (e.g. SIGINT and then SIGKILL)
+        require('console').error('Next server is already being stopped')
+      }
       const closePromise = once(this.childProcess, 'close')
       await new Promise<void>((resolve) => {
         treeKill(this.childProcess.pid, signal, (err) => {
