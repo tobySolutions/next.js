@@ -185,7 +185,7 @@ export async function createHotReloaderTurbopack(
       memoryLimit: opts.nextConfig.experimental.turbo?.memoryLimit,
     }
   )
-  opts.onDevServerCleanup?.(() => project.onExit())
+  opts.onCleanup(() => project.onExit())
   const entrypointsSubscription = project.entrypointsSubscribe()
 
   const currentWrittenEntrypoints: Map<EntryKey, WrittenEndpoint> = new Map()

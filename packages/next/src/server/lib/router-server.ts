@@ -70,7 +70,7 @@ export async function initialize(opts: {
   dir: string
   port: number
   dev: boolean
-  onDevServerCleanup: ((listener: () => Promise<void>) => void) | undefined
+  onCleanup: (listener: () => Promise<void>) => void
   server?: import('http').Server
   minimalMode?: boolean
   hostname?: string
@@ -145,7 +145,7 @@ export async function initialize(opts: {
         isCustomServer: opts.customServer,
         turbo: !!process.env.TURBOPACK,
         port: opts.port,
-        onDevServerCleanup: opts.onDevServerCleanup,
+        onCleanup: opts.onCleanup,
         resetFetch,
       })
     )
@@ -626,6 +626,7 @@ export async function initialize(opts: {
     bundlerService: devBundlerService,
     startServerSpan: opts.startServerSpan,
     quiet: opts.quiet,
+    onCleanup: opts.onCleanup,
   }
   renderServerOpts.serverFields.routerServerHandler = requestHandlerImpl
 

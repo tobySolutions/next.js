@@ -38,7 +38,7 @@ const getServerImpl = async () => {
 export type NextServerOptions = Omit<
   ServerOptions | DevServerOptions,
   // This is assigned in this server abstraction.
-  'conf' | 'onCleanup'
+  'conf'
 > &
   Partial<Pick<ServerOptions | DevServerOptions, 'conf'>>
 
@@ -287,9 +287,7 @@ class NextCustomServer extends NextServer {
       dir: this.options.dir!,
       port: this.options.port || 3000,
       isDev: !!this.options.dev,
-      onDevServerCleanup: this.options.dev
-        ? this.onCleanup.bind(this)
-        : undefined,
+      onCleanup: this.onCleanup.bind(this),
       hostname: this.options.hostname || 'localhost',
       minimalMode: this.options.minimalMode,
       quiet: this.options.quiet,
