@@ -156,6 +156,11 @@ export class NextServer {
     await Promise.all(
       [
         async () => {
+          if (!this.server && !this.serverPromise) {
+            // this is an edge case, but if we haven't created a server yet,
+            // it'd be silly to do so just to shut it down.
+            return
+          }
           const server = await this.getServer()
           await server['close']()
         },
@@ -353,6 +358,16 @@ class NextCustomServer extends NextServer {
     super.setAssetPrefix(assetPrefix)
     this.renderServer.setAssetPrefix(assetPrefix)
   }
+
+  async close(): Promise<void> {
+    await Promise.all([
+      this.server ? super.close() : undefined,
+      this.renderServer.close(),
+    ])
+  }
+
+  // TODO: it seems like we're not forwarding methods like `render404` to `this.renderServer`
+  // like we probably should. we should look into that
 }
 
 // This file is used for when users run `require('next')`
