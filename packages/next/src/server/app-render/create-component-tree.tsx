@@ -39,6 +39,7 @@ export function createComponentTree(props: {
   ctx: AppRenderContext
   missingSlots?: Set<string>
   preloadCallbacks: PreloadCallbacks
+  navigationDeniedApi: boolean
 }): Promise<CacheNodeSeedData> {
   return getTracer().trace(
     NextNodeServerSpan.createComponentTree,
@@ -74,6 +75,7 @@ async function createComponentTreeInternal({
   ctx,
   missingSlots,
   preloadCallbacks,
+  navigationDeniedApi,
 }: {
   createSegmentPath: CreateSegmentPath
   loaderTree: LoaderTree
@@ -87,6 +89,7 @@ async function createComponentTreeInternal({
   ctx: AppRenderContext
   missingSlots?: Set<string>
   preloadCallbacks: PreloadCallbacks
+  navigationDeniedApi: boolean
 }): Promise<CacheNodeSeedData> {
   const {
     renderOpts: { nextConfigOutput, experimental },
@@ -203,25 +206,39 @@ async function createComponentTreeInternal({
       })
     : []
 
-  const [Forbidden, forbiddenStyles] = forbidden
-    ? await createComponentStylesAndScripts({
-        ctx,
-        filePath: forbidden[1],
-        getComponent: forbidden[0],
-        injectedCSS: injectedCSSWithCurrentLayout,
-        injectedJS: injectedJSWithCurrentLayout,
-      })
-    : []
+  const [Forbidden, forbiddenStyles] =
+    navigationDeniedApi && forbidden
+      ? await createComponentStylesAndScripts({
+          ctx,
+          filePath: forbidden[1],
+          getComponent: forbidden[0],
+          injectedCSS: injectedCSSWithCurrentLayout,
+          injectedJS: injectedJSWithCurrentLayout,
+        })
+      : []
+  const forbiddenElement = Forbidden ? (
+    <>
+      {forbiddenStyles}
+      <Forbidden />
+    </>
+  ) : undefined
 
-  const [Unauthorized, unauthorizedStyles] = unauthorized
-    ? await createComponentStylesAndScripts({
-        ctx,
-        filePath: unauthorized[1],
-        getComponent: unauthorized[0],
-        injectedCSS: injectedCSSWithCurrentLayout,
-        injectedJS: injectedJSWithCurrentLayout,
-      })
-    : []
+  const [Unauthorized, unauthorizedStyles] =
+    navigationDeniedApi && unauthorized
+      ? await createComponentStylesAndScripts({
+          ctx,
+          filePath: unauthorized[1],
+          getComponent: unauthorized[0],
+          injectedCSS: injectedCSSWithCurrentLayout,
+          injectedJS: injectedJSWithCurrentLayout,
+        })
+      : []
+  const unauthorizedElement = Unauthorized ? (
+    <>
+      {unauthorizedStyles}
+      <Unauthorized />
+    </>
+  ) : undefined
 
   let dynamic = layoutOrPageMod?.dynamic
 
@@ -393,21 +410,13 @@ async function createComponentTreeInternal({
             </>
           ) : undefined
 
-        const forbiddenComponent =
-          Forbidden && isChildrenRouteKey ? (
-            <>
-              {forbiddenStyles}
-              <Forbidden />
-            </>
-          ) : undefined
+        const forbiddenComponent = isChildrenRouteKey
+          ? forbiddenElement
+          : undefined
 
-        const unauthorizedComponent =
-          Unauthorized && isChildrenRouteKey ? (
-            <>
-              {unauthorizedStyles}
-              <Unauthorized />
-            </>
-          ) : undefined
+        const unauthorizedComponent = isChildrenRouteKey
+          ? unauthorizedElement
+          : undefined
 
         // if we're prefetching and that there's a Loading component, we bail out
         // otherwise we keep rendering for the prefetch.
@@ -481,6 +490,7 @@ async function createComponentTreeInternal({
             ctx,
             missingSlots,
             preloadCallbacks,
+            navigationDeniedApi,
           })
 
           childCacheNodeSeedData = seedData
@@ -709,12 +719,7 @@ async function createComponentTreeInternal({
         }
         if (Forbidden) {
           const forbiddenParallelRouteProps = {
-            children: (
-              <>
-                {forbiddenStyles}
-                <Forbidden />
-              </>
-            ),
+            children: forbiddenElement,
           }
           forbiddenClientSegment = (
             <>
@@ -729,12 +734,7 @@ async function createComponentTreeInternal({
         }
         if (Unauthorized) {
           const unauthorizedParallelRouteProps = {
-            children: (
-              <>
-                {unauthorizedStyles}
-                <Unauthorized />
-              </>
-            ),
+            children: unauthorizedElement,
           }
           unauthorizedClientSegment = (
             <>
