@@ -15,6 +15,11 @@ describe('unstable_after during server shutdown', () => {
     await next.start()
   })
 
+  afterEach(async () => {
+    // if the test didn't manage to kill next, we should do it ourselves
+    await next.stop()
+  })
+
   if (isNextDev) {
     it.each(['SIGINT', 'SIGTERM'] as const)(
       'does not wait for unstable_after callbacks when the server receives %s',
