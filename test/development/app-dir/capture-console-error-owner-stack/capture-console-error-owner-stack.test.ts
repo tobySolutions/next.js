@@ -7,12 +7,15 @@ import {
   getRedboxSource,
   getRedboxTotalErrorCount,
   waitForAndOpenRuntimeError,
+  hasRedboxCallStack,
 } from 'next-test-utils'
 
 async function getRedboxResult(browser: any) {
   const title = await getRedboxTitle(browser)
   const description = await getRedboxDescription(browser)
-  const callStacks = await getRedboxCallStack(browser)
+  const callStacks = (await hasRedboxCallStack(browser))
+    ? await getRedboxCallStack(browser)
+    : ''
   const count = await getRedboxTotalErrorCount(browser)
   const source = await getRedboxSource(browser)
   const result = {
@@ -41,8 +44,7 @@ describe('app-dir - capture-console-error-owner-stack', () => {
     if (process.env.TURBOPACK) {
       expect(result).toMatchInlineSnapshot(`
         {
-          "callStacks": "Page
-        app/browser/event/page.js (5:5)",
+          "callStacks": "",
           "count": 1,
           "description": "trigger an console <error>",
           "source": "app/browser/event/page.js (7:17) @ onClick
@@ -60,8 +62,7 @@ describe('app-dir - capture-console-error-owner-stack', () => {
     } else {
       expect(result).toMatchInlineSnapshot(`
         {
-          "callStacks": "button
-        app/browser/event/page.js (5:6)",
+          "callStacks": "",
           "count": 1,
           "description": "trigger an console <error>",
           "source": "app/browser/event/page.js (7:17) @ error

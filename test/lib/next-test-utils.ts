@@ -1273,6 +1273,10 @@ export async function toggleCollapseComponentStack(
     .click()
 }
 
+export async function hasRedboxCallStack(browser: BrowserInterface) {
+  return browser.hasElementByCssSelector('[data-nextjs-call-stack-frame]')
+}
+
 export async function getRedboxCallStack(
   browser: BrowserInterface
 ): Promise<string | null> {
